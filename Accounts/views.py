@@ -1,16 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import views as auth_views
-from .forms import UserLoginForm, UserRegisterForm, UpdateUserForm
+from .forms import UserLoginForm, UserRegisterForm, UserProfileUpdateForm
 from django.contrib import messages
-from django.views.generic import View
+from django.views.generic import View, UpdateView
 from .models import Profile
 from django.contrib.auth.models import User
 from django.contrib.auth import login, logout
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
-from django.urls import reverse_lazy
+from django.urls.base import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django import forms
 
 
 class RegisterUser(View):
@@ -61,10 +60,7 @@ class LoginUser(auth_views.LoginView):
         return super(LoginUser, self).form_valid(form)
 
 
-class ProfileUser(LoginRequiredMixin, View):
-    login_url = reverse_lazy('accounts:user_login')
-    redirect_field_name = 'redirect_to'
-
+class ProfileUser(View):
     def get(self, *args, **kwargs):
         request = self.request
         profile = get_object_or_404(Profile, user=request.user)
@@ -74,50 +70,41 @@ class ProfileUser(LoginRequiredMixin, View):
         return render(request, 'Accounts/profile.html', context)
 
 
-class LogoutUser(LoginRequiredMixin, View):
-    login_url = reverse_lazy('accounts:user_login')
-    redirect_field_name = 'redirect_to'
+class LogoutUser(View):
 
     def get(self, request):
         logout(request)
-        messages.success(self.request, f"by by", 'success')
+        messages.success(self.request, f"We Hope See You Again !!", 'success')
         return redirect('accounts:user_login')
 
 
-class ChangePassword(LoginRequiredMixin, SuccessMessageMixin, PasswordChangeView):
-    login_url = reverse_lazy('accounts:user_login')
-    redirect_field_name = 'redirect_to'
+class ChangePasswordUser(SuccessMessageMixin, PasswordChangeView):
     template_name = 'Accounts/change_password.html'
     success_message = 'Password was changed successfully'
     success_url = reverse_lazy('accounts:user_profile')
 
 
-class UpdateUserView(LoginRequiredMixin, View):
-    login_url = reverse_lazy('accounts:user_login')
-    form_class = UpdateUserForm
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    """
+    user and profile update
+    """
+    model = Profile
+    form_class = UserProfileUpdateForm
     template_name = 'Accounts/update_user.html'
+    success_url = reverse_lazy('accounts:user_profile')  # Redirect after successful update
 
-    def get(self, *args, **kwargs):
-        user = get_object_or_404(User, id=self.request.user.id)
-        form = self.form_class(instance=user)
-        return render(self.request, self.template_name, {'form': form})
+    def get_form_kwargs(self):
+        """Pass the current user to the form."""
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'user': self.request.user})
+        return kwargs
 
-    def post(self, *args, **kwargs):
-        user = get_object_or_404(User, id=self.request.user.id)
-        form = self.form_class(self.request.POST, instance=user)
-        if form.is_valid():
-            data = form.cleaned_data
-            if data['username'] != user.username:
-                if User.objects.filter(username=data['username']).exists():
-                    raise forms.ValidationError('this user name was taken')
-                else:
-                    user.username = data['username']
+    def get_object(self, queryset=None):
+        """Return the profile of the logged-in user."""
+        return self.request.user.profile
 
-            user.username = data['username']
-            user.email = data['email']
-            user.last_name = data['last_name']
-            user.first_name = data['first_name']
-            user.save()
-            messages.success(self.request, f"Your changes were made successfully", 'success')
-            return redirect('accounts:user_profile')
-        return render(self.request, self.template_name, {'form': form})
+    def form_valid(self, form):
+        """If the form is valid, save both the user and profile."""
+        form.save()
+        messages.success(self.request, 'Your profile has been updated successfully!')
+        return super().form_valid(form)

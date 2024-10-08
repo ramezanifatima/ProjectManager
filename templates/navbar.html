@@ -8,7 +8,7 @@
         <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasDarkNavbar"
              aria-labelledby="offcanvasDarkNavbarLabel">
             <div class="offcanvas-header">
-                <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">{% if user.is_authenticated %}{{ user.username }}{% else %} Guest {% endif %}</h5>
+                <h5 class="offcanvas-title" id="offcanvasDarkNavbarLabel">{% if user.is_authenticated %}@{{ user.username }}{% else %}Guest{% endif %}</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
                         aria-label="Close"></button>
             </div>
@@ -32,41 +32,35 @@
                             <li><a class="dropdown-item" href="">subtask</a></li>
                         </ul>
                     </li>
-
-
-
-
-                        {% if  request.user.is_authenticated %}
-                            <li class="nav-item dropdown">
+                    {% if user.is_authenticated %}
+                        <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                            aria-expanded="false">
                             Profile
                         </a>
-                            <ul class="dropdown-menu dropdown-menu-dark">
+
+                        <ul class="dropdown-menu dropdown-menu-dark">
                             <li><a class="dropdown-item" href="{% url 'accounts:user_profile' %}">profile</a></li>
                             <hr class="dropdown-divider">
                             <li><a class="dropdown-item" href="{% url 'accounts:user_logout' %}">logout</a></li>
                         </ul>
-                        {% endif %}
 
                     </li>
-                    {% if not request.user.is_authenticated  %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="" role="button" data-bs-toggle="dropdown"
+                    {% elif not user.is_authenticated %}
+                        <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
                            aria-expanded="false">
-                            {% if request.user.is_authenticated %}register{% elif not request.user.is_authenticated %}login{% endif %}
+                            login/register
                         </a>
-                    {% endif %}
 
                         <ul class="dropdown-menu dropdown-menu-dark">
-                            {% if request.user.is_authenticated %}
                             <li><a class="dropdown-item" href="{% url 'accounts:user_register' %}">register</a></li>
-                            {% elif not request.user.is_authenticated %}
+                            <hr class="dropdown-divider">
                             <li><a class="dropdown-item" href="{% url 'accounts:user_login' %}">login</a></li>
-                            {% endif %}
                         </ul>
 
                     </li>
+                    {% endif %}
 
 
                 </ul>
