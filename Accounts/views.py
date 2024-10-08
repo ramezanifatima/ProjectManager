@@ -13,6 +13,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 
 
 class RegisterUser(View):
+    """
+    This view is used to register a user
+    """
     form_class = UserRegisterForm
     template_name = 'Accounts/register.html'
 
@@ -40,6 +43,9 @@ class RegisterUser(View):
 
 
 class LoginUser(auth_views.LoginView):
+    """
+    This view is used to login a user
+    """
     form_class = UserLoginForm
     template_name = 'Accounts/login.html'
 
@@ -61,6 +67,9 @@ class LoginUser(auth_views.LoginView):
 
 
 class ProfileUser(View):
+    """
+    This view is used to display the profile of the user
+    """
     def get(self, *args, **kwargs):
         request = self.request
         profile = get_object_or_404(Profile, user=request.user)
@@ -71,7 +80,9 @@ class ProfileUser(View):
 
 
 class LogoutUser(View):
-
+    """
+    This view is used to login a user
+    """
     def get(self, request):
         logout(request)
         messages.success(self.request, f"We Hope See You Again !!", 'success')
@@ -79,6 +90,9 @@ class LogoutUser(View):
 
 
 class ChangePasswordUser(SuccessMessageMixin, PasswordChangeView):
+    """
+    This view is used to change the password
+    """
     template_name = 'Accounts/change_password.html'
     success_message = 'Password was changed successfully'
     success_url = reverse_lazy('accounts:user_profile')
@@ -90,7 +104,7 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     """
     model = Profile
     form_class = UserProfileUpdateForm
-    template_name = 'Accounts/update_user.html'
+    template_name = 'Accounts/update_profile.html'
     success_url = reverse_lazy('accounts:user_profile')  # Redirect after successful update
 
     def get_form_kwargs(self):

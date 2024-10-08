@@ -37,7 +37,7 @@ class Task(models.Model):
         ('pink', 'pink'),
         ('yellow', 'yellow'),
     )
-    project = models.ForeignKey(Project,on_delete=models.CASCADE)
+    project = models.ForeignKey(Project,on_delete=models.CASCADE,related_name='task')
     title = models.CharField(max_length=256)
     description = models.TextField()
     color = models.CharField(max_length=6, choices=COLOR_CHOICES)
@@ -62,7 +62,7 @@ class SubTask(models.Model):
         ('pink', 'pink'),
         ('yellow', 'yellow'),
     )
-    task = models.ForeignKey(Task,on_delete=models.CASCADE)
+    task = models.ForeignKey(Task,on_delete=models.CASCADE,related_name='subtask')
     title = models.CharField(max_length=256)
     description = models.TextField()
     color = models.CharField(max_length=6, choices=COLOR_CHOICES)
