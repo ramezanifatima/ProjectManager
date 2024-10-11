@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView, DeleteView, UpdateView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, View
 from .models import Project, Task, SubTask
-from .forms import ProjectForm, UpdateProjectForm, TaskForm, TaskUpdateForm, SubTaskForm, SubTaskUpdateForm
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib import messages
-from django.urls import reverse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .forms import ProjectForm, ProjectUpdateForm, TaskForm, UpdateTaskForm, SubTaskForm, UpdateSubTaskForm, \
+    AddUserProjectForm
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class ProjectListView(LoginRequiredMixin, ListView):
@@ -21,169 +24,239 @@ class ProjectListView(LoginRequiredMixin, ListView):
         return render(request, 'Projects/projects.html', context)
 
 
-class ProjectCreateView(LoginRequiredMixin, CreateView):
+class ProjectCreateView(CreateView):
     """
-    This view is used to create a new project
+    this view give us create function for project model
     """
+
     form_class = ProjectForm
     template_name = 'Projects/create_project.html'
 
     def post(self, request, *args, **kwargs):
         user = request.user
-        form = self.form_class(request.POST, request.FILES, instance=user)
+        form = self.form_class(request.POST, request.FILES, )
         if form.is_valid():
             data = form.cleaned_data
             project = Project.objects.create(
-                user=user,
                 title=data['title'], image=data['image'],
                 description=data['description'], color=data['color'],
                 start_date=data['start_date'], end_date=data['end_date'],
                 budget=data['budget']
             )
+            project.user.add(user)
             if project:
-                messages.success(request, 'your project saved')
+                messages.success(request, 'your project saved', 'success')
                 return redirect('projects:projects_list')
-            messages.error(request, 'something went wrong', 'danger')
+            messages.error(request, 'something went wrong !!!', 'danger')
         else:
-            form = self.form_class(instance=user)
-            return render(request, 'Projects/create_project.html', {'form': form})
+            form = self.form_class()
+        return render(request, 'Projects/create_project.html', {"form": form})
 
 
 class ProjectDeleteView(DeleteView):
     """
-    This view is used to delete a project
+        ...
     """
     model = Project
     pk_url_kwarg = 'pk'
-    template_name = 'Projects/delete_project.html'
+    template_name = 'Projects/confirm_delete_pj.html'
     success_url = '/'
 
 
 class UpdateProjectView(UpdateView):
     """
-    This view is used to edit a project
+    ...
     """
     model = Project
+    form_class = ProjectUpdateForm
     pk_url_kwarg = 'pk'
-    form_class = UpdateProjectForm
     template_name = 'Projects/update.html'
     success_url = '/'
 
 
-class DetailProjectView(DetailView):
+class ProjectDetailView(DetailView):
     """
-    This view returns the details of a project
+    this view returned detail project
     """
     model = Project
-    pk_url_kwarg = 'pk'
-    template_name = 'Projects/mor_info_project.html'
+    template_name = 'Projects/project_detail.html'
 
 
-class DetailTaskView(DetailView):
+class TaskListView(ListView):
     """
-    This view returns the details of a task and show mor subtasks
+        this views give us detail of project and all task of this project
+        """
+
+    def get(self, request, *args, **kwargs):
+        projects = get_object_or_404(Project, id=kwargs['id'])
+        tasks = Task.objects.filter(project=projects)
+
+        context = {
+            'projects': projects,
+            'tasks': tasks,
+        }
+        return render(request, 'Projects/task.html', context)
+
+
+class DeleteTask(DeleteView):
     """
+        this views give us delete func of task
+        """
     model = Task
-    template_name = 'Projects/mor_info_task.html'
+    pk_url_kwarg = 'pk'
+    template_name = 'Projects/confirm_delete_ts.html'
+    success_url = '/'
 
 
-class CreateTaskView(CreateView):
+class UpdateTask(UpdateView):
     """
+        this views give us update task func
+        """
+    model = Task
+    form_class = UpdateTaskForm
+    pk_url_kwarg = 'pk'
+    template_name = 'Projects/update_ts.html'
+    success_url = '/'
 
+
+class AllTaskListView(ListView):
+    """
+        this views give us all task of this user
+        """
+
+    def get(self, request, *args, **kwargs):
+        tasks = Task.objects.filter(project__user=request.user)
+        context = {
+            'tasks': tasks,
+        }
+        return render(request, 'Projects/all_tasks.html', context)
+
+
+class TaskCreateView(CreateView):
+    """
+    this views give us create function for task model
     """
     form_class = TaskForm
     template_name = 'Projects/create_task.html'
-    pk_url_kwarg = 'pk_project'
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST, request.FILES)
-        pk_project = self.kwargs.get(self.pk_url_kwarg)
-        project = get_object_or_404(Project, pk=pk_project)
-
+        user = request.user
+        form = self.form_class(request.POST, request.FILES, instance=user)
+        project = Project.objects.get(id=self.kwargs['id'])
         if form.is_valid():
             data = form.cleaned_data
-            print(data)
             task = Task.objects.create(
-                project=project, title=data['title'],
-                description=data['description'], color=data['color'],
-                image=data['image'], start_date=data['start_date'],
-                end_date=data['end_date'], budget=data['budget'],
+                project=project, image=data['image'],
+                color=data['color'], description=data['description'],
+                start_date=data['start_date'], end_date=data['end_date'], title=data['title']
             )
             if task:
-                print('task')
-                messages.success(request, 'your task saved ')
-                return redirect(reverse('projects:projects_detail', kwargs={'pk': pk_project}))
-            messages.error(request, 'something went wrong', 'danger')
+                messages.success(request, 'your task saved success', 'success')
+                return redirect('projects:task_all', project.id)
+            else:
+                messages.error(request, 'somthing went wrong !!', 'danger')
+                return redirect('project:all_task', project.id)
+
         else:
-            print(form.errors)
-            form = self.form_class()
-            return render(request, self.template_name, {'form': form})
+            form = self.form_class(instance=user)
+        return render(request, 'Projects/create_task.html', {"form": form})
 
 
-class TaskDeleteView(DeleteView):
-    model = Task
-    pk_url_kwarg = 'pk'
-    template_name = 'Projects/delete_task.html'
-    success_url = '/'
-
-
-class UpdateTaskView(UpdateView):
-    model = Task
-    pk_url_kwarg = 'pk'
-    form_class = TaskUpdateForm
-    template_name = 'Projects/update_task.html'
-    success_url = '/'
-
-
-class CreateSubTaskView(CreateView):
+class TaskAndSubTaskListView(ListView):
     """
+        this views give us detail of task and subtask
+        """
 
+    def get(self, request, *args, **kwargs):
+        user = User.objects.get(id=request.user.id)
+        task = get_object_or_404(Task, id=kwargs['id'])
+        sub_task = SubTask.objects.filter(task=task)
+
+        context = {
+            'task': task,
+            'sub_task': sub_task,
+        }
+        return render(request, 'Projects/task_detail.html', context)
+
+
+class SubTaskCreateView(CreateView):
+    """
+    this views give us create function for subtask model
     """
     form_class = SubTaskForm
-    template_name = 'Projects/create_sub_task.html'
-    pk_url_kwarg = 'pk_task'
+    template_name = 'Projects/create_subtask.html'
 
     def post(self, request, *args, **kwargs):
-        form = self.form_class(request.POST, request.FILES)
-        pk_task = self.kwargs.get(self.pk_url_kwarg)
-        task = get_object_or_404(Task, pk=pk_task)
-        project = get_object_or_404(Project,task=task)
-
+        user = request.user
+        form = self.form_class(request.POST, request.FILES, instance=user)
+        task = Task.objects.get(id=self.kwargs['id'])
         if form.is_valid():
             data = form.cleaned_data
-            task = SubTask.objects.create(
-                task=task, title=data['title'],
-                description=data['description'], color=data['color'],
-                image=data['image'], start_date=data['start_date'],
-                end_date=data['end_date'], budget=data['budget'],
+            sub_task = SubTask.objects.create(
+                task=task, image=data['image'],
+                color=data['color'], description=data['description'],
+                start_date=data['start_date'], end_date=data['end_date'], title=data['title']
             )
-            if task:
-                messages.success(request, 'your task saved ')
-                return redirect(reverse('projects:projects_detail', kwargs={'pk': project.id}))
-            messages.error(request, 'something went wrong', 'danger')
+            if sub_task:
+                messages.success(request, 'your sub task saved success', 'success')
+                return redirect('projects:task_detail', task.id)
+            else:
+                messages.error(request, 'somthing went wrong !!', 'danger')
+                return redirect('project:task_detail', task.id)
+
         else:
-            form = self.form_class()
-            return render(request, self.template_name, {'form': form})
+            form = self.form_class(instance=user)
+        return render(request, 'Projects/create_subtask.html', {"form": form})
 
 
-class SubTaskDeleteView(DeleteView):
+class DeleteSubTask(DeleteView):
+    """
+        this views give us delete func of subtask model
+        """
     model = SubTask
     pk_url_kwarg = 'pk'
-    template_name = 'Projects/delete_subtask.html'
+    template_name = 'Projects/confirm_delete_st.html'
     success_url = '/'
 
 
-class UpdateSubTaskView(UpdateView):
+class UpdateSubTask(UpdateView):
+    """
+        this views give us update func for subtask model
+        """
     model = SubTask
+    form_class = UpdateSubTaskForm
     pk_url_kwarg = 'pk'
-    form_class = SubTaskUpdateForm
-    template_name = 'Projects/update_subtask.html'
+    template_name = 'Projects/update_st.html'
     success_url = '/'
 
 
-class DetailSubTaskView(DetailView):
+class SubTaskView(ListView):
     """
-    This view returns the details of a subtask
-    """
+            this views give us detail of subtask
+            """
+
+    def get(self, request, *args, **kwargs):
+        sub_task = get_object_or_404(SubTask, id=kwargs['id'])
+
+        context = {
+            'sub_task': sub_task,
+        }
+        return render(request, 'Projects/subtask.html', context)
+
+
+class SubtaskDetailView(DetailView):
     model = SubTask
-    template_name = 'Projects/mor_info_task.html'
+    template_name = 'Projects/subtask_detail.html'
+
+
+class AddUserToProjectView(View):
+    form_class = AddUserProjectForm
+    template_name = 'Projects/add_user_to_project.html'
+
+    def get(self, *args, **kwargs):
+        return render(self.request, self.template_name, {'form': self.form_class})
+
+    def post(self,*args,**kwargs):
+        form = self.form_class(self.request.POST)
+        project = get_object_or_404(Project,id=)
+        if form.is_valid():

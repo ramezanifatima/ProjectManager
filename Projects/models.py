@@ -1,5 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Project(models.Model):
@@ -13,7 +15,7 @@ class Project(models.Model):
         ('yellow', 'yellow'),
     )
     title = models.CharField(max_length=256)
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ManyToManyField(User)
     description = models.TextField()
     color = models.CharField(max_length=6, choices=COLOR_CHOICES)
     image = models.ImageField(upload_to='projects/project/',
@@ -37,7 +39,7 @@ class Task(models.Model):
         ('pink', 'pink'),
         ('yellow', 'yellow'),
     )
-    project = models.ForeignKey(Project,on_delete=models.CASCADE,related_name='task')
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name='task')
     title = models.CharField(max_length=256)
     description = models.TextField()
     color = models.CharField(max_length=6, choices=COLOR_CHOICES)
@@ -62,7 +64,7 @@ class SubTask(models.Model):
         ('pink', 'pink'),
         ('yellow', 'yellow'),
     )
-    task = models.ForeignKey(Task,on_delete=models.CASCADE,related_name='subtask')
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='task')
     title = models.CharField(max_length=256)
     description = models.TextField()
     color = models.CharField(max_length=6, choices=COLOR_CHOICES)
