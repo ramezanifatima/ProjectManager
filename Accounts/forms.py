@@ -1,7 +1,8 @@
 from django.contrib.auth.forms import AuthenticationForm
 from django import forms
-from django.contrib.auth.models import User
 from .models import Profile
+from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from .models import CustomUser
 
 
 class UserRegisterForm(forms.ModelForm):
@@ -51,12 +52,12 @@ class UserRegisterForm(forms.ModelForm):
                                    ))
 
     class Meta:
-        model = User
+        model = CustomUser
         fields = ['username', 'email', 'first_name', 'last_name', ]
 
     def clean_username(self):
         username = self.cleaned_data['username']
-        if User.objects.filter(username=username).exists():
+        if CustomUser.objects.filter(username=username).exists():
             raise forms.ValidationError('this user name was taken')
         return username
 
@@ -111,7 +112,7 @@ class UserProfileUpdateForm(forms.ModelForm):
         user = kwargs.pop('user', None)
         super(UserProfileUpdateForm, self).__init__(*args, **kwargs)
 
-        # If a user is passed, prepopulate User fields
+        # If a user is passed, prepopulate CustomUser fields
         if user:
             self.fields['first_name'].initial = user.first_name
             self.fields['last_name'].initial = user.last_name
@@ -120,7 +121,7 @@ class UserProfileUpdateForm(forms.ModelForm):
     def save(self, commit=True):
         profile = super(UserProfileUpdateForm, self).save(commit=False)
 
-        # Save the User model fields
+        # Save the CustomUser model fields
         user = profile.user
         user.first_name = self.cleaned_data['first_name']
         user.last_name = self.cleaned_data['last_name']
@@ -129,3 +130,16 @@ class UserProfileUpdateForm(forms.ModelForm):
             user.save()
             profile.save()
         return profile
+
+
+class CustomUserCreationForm(UserCreationForm):
+    class Meta:
+        model = CustomUser
+        fields = ('phone_number', 'first_name', 'last_name', 'role')
+
+
+class CustomUserChangeForm(UserChangeForm):
+    class Meta:
+        model = CustomUser
+        fields = ('phone_number', 'first_name', 'last_name', 'role',
+                  'is_active', 'is_staff', 'is_superuser')

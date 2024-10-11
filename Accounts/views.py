@@ -4,18 +4,15 @@ from .forms import UserLoginForm, UserRegisterForm, UserProfileUpdateForm
 from django.contrib import messages
 from django.views.generic import View, UpdateView
 from .models import Profile
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.contrib.auth import login, logout
 from django.contrib.auth.views import PasswordChangeView
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls.base import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 
-
+User = get_user_model()
 class RegisterUser(View):
-    """
-    This view is used to register a user
-    """
     form_class = UserRegisterForm
     template_name = 'Accounts/register.html'
 
@@ -28,10 +25,10 @@ class RegisterUser(View):
             data = form.cleaned_data
             print(data)
             user = User.objects.create_user(username=data['username'],
-                                            email=data['email'],
-                                            last_name=data['last_name'],
-                                            first_name=data['first_name'],
-                                            password=data['password_1'])
+                                                  email=data['email'],
+                                                  last_name=data['last_name'],
+                                                  first_name=data['first_name'],
+                                                  password=data['password_1'])
             Profile.objects.create(
                 user=user,
                 phone=data['phone_number'],
@@ -43,9 +40,6 @@ class RegisterUser(View):
 
 
 class LoginUser(auth_views.LoginView):
-    """
-    This view is used to login a user
-    """
     form_class = UserLoginForm
     template_name = 'Accounts/login.html'
 
@@ -67,9 +61,6 @@ class LoginUser(auth_views.LoginView):
 
 
 class ProfileUser(View):
-    """
-    This view is used to display the profile of the user
-    """
     def get(self, *args, **kwargs):
         request = self.request
         profile = get_object_or_404(Profile, user=request.user)
@@ -80,9 +71,7 @@ class ProfileUser(View):
 
 
 class LogoutUser(View):
-    """
-    This view is used to login a user
-    """
+
     def get(self, request):
         logout(request)
         messages.success(self.request, f"We Hope See You Again !!", 'success')
@@ -90,21 +79,15 @@ class LogoutUser(View):
 
 
 class ChangePasswordUser(SuccessMessageMixin, PasswordChangeView):
-    """
-    This view is used to change the password
-    """
     template_name = 'Accounts/change_password.html'
     success_message = 'Password was changed successfully'
     success_url = reverse_lazy('accounts:user_profile')
 
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
-    """
-    user and profile update
-    """
     model = Profile
     form_class = UserProfileUpdateForm
-    template_name = 'Accounts/update_profile.html'
+    template_name = 'accounts/update_profile.html'
     success_url = reverse_lazy('accounts:user_profile')  # Redirect after successful update
 
     def get_form_kwargs(self):

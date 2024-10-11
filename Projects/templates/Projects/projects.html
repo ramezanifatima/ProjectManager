@@ -3,7 +3,7 @@
 {% block content %}
 
     <div class="container mt-4">
-        <a href="{% url 'projects:projects_create' %}" class="btn bg-success">new project</a>
+        <a href="{% url 'projects:project_create' %}" class="btn bg-success">new project</a>
         <div class="row">
             {% for project in projects %}
                 <div class="col-4 mt-2 mb-4">
@@ -16,7 +16,7 @@
                                 <p style="background-color: {{ project.color }};width: 20px;height: 20px;border-radius: 20px"></p>
                             </div>
                             <div class="card-footer">
-                                <a href="{% url 'projects:projects_detail' project.id %}" class="btn btn-primary">More Info</a>
+                                <a href="{% url 'projects:project_detail' project.id %}" class="btn btn-primary">More Info</a>
                                 <small class="text-body-secondary">{{ project.start_date }}</small>
                                 <small class="text-body-secondary">{{ project.end_date }}</small>
                             </div>

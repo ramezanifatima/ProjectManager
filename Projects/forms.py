@@ -1,5 +1,6 @@
 from django import forms
 from .models import Project, Task, SubTask
+from Accounts.models import CustomUser
 
 
 class ProjectForm(forms.ModelForm):
@@ -16,25 +17,25 @@ class ProjectForm(forms.ModelForm):
                             widget=forms.TextInput(attrs={'class': 'form-control'}))
     image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}))
     color = forms.ChoiceField(choices=color_option, widget=forms.Select(attrs={'class': 'form-control'}))
-    budget = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    description = forms.CharField(required=True, widget=forms.Textarea(attrs={'class': 'form-control'}))
+    budget = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    description = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Project
-        fields = {
+        fields = (
             'title',
             'image',
             'color',
             'budget',
             'start_date',
             'end_date',
-            'description'
-        }
+            'description',
+        )
 
 
-class UpdateProjectForm(forms.ModelForm):
+class ProjectUpdateForm(forms.ModelForm):
     color_option = (
         ('red', 'red'),
         ('black', 'black'),
@@ -48,14 +49,14 @@ class UpdateProjectForm(forms.ModelForm):
                             widget=forms.TextInput(attrs={'class': 'form-control'}))
     image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}))
     color = forms.ChoiceField(choices=color_option, widget=forms.Select(attrs={'class': 'form-control'}))
-    budget = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    description = forms.CharField(required=True, widget=forms.Textarea(attrs={'class': 'form-control'}))
+    budget = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    description = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Project
-        fields = {
+        fields = (
             'title',
             'image',
             'color',
@@ -64,31 +65,32 @@ class UpdateProjectForm(forms.ModelForm):
             'end_date',
             'description',
             'status'
-        }
+        )
 
 
 class TaskForm(forms.ModelForm):
     color_option = (
-        ('red', 'red'),
         ('black', 'black'),
         ('blue', 'blue'),
-        ('green', 'green'),
         ('gray', 'gray'),
+        ('red', 'red'),
+        ('green', 'green'),
+        ('orange', 'orange'),
         ('pink', 'pink'),
-        ('yellow', 'yellow'),
     )
-    title = forms.CharField(max_length=256, required=True,
+    title = forms.CharField(max_length=100,
+                            required=True,
                             widget=forms.TextInput(attrs={'class': 'form-control'}))
     image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}))
     color = forms.ChoiceField(choices=color_option, widget=forms.Select(attrs={'class': 'form-control'}))
-    budget = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    description = forms.CharField(required=True, widget=forms.Textarea(attrs={'class': 'form-control'}))
+    budget = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    description = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
 
     class Meta:
         model = Task
-        fields = {
+        fields = (
             'title',
             'image',
             'color',
@@ -96,102 +98,124 @@ class TaskForm(forms.ModelForm):
             'start_date',
             'end_date',
             'description',
-        }
+        )
 
 
-class TaskUpdateForm(forms.ModelForm):
+class UpdateTaskForm(forms.ModelForm):
     color_option = (
-        ('red', 'red'),
         ('black', 'black'),
         ('blue', 'blue'),
-        ('green', 'green'),
         ('gray', 'gray'),
+        ('red', 'red'),
+        ('green', 'green'),
+        ('orange', 'orange'),
         ('pink', 'pink'),
-        ('yellow', 'yellow'),
     )
-    title = forms.CharField(max_length=256, required=True,
+    title = forms.CharField(max_length=100,
+                            required=True,
                             widget=forms.TextInput(attrs={'class': 'form-control'}))
     image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}))
     color = forms.ChoiceField(choices=color_option, widget=forms.Select(attrs={'class': 'form-control'}))
-    budget = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    descriptions = forms.CharField(required=True, widget=forms.Textarea(attrs={'class': 'form-control'}))
+    budget = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    description = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    status = forms.BooleanField(widget=forms.CheckboxInput(attrs={'type': 'checkbox'}))
 
     class Meta:
-        model = Project
-        fields = {
+        model = Task
+        fields = (
             'title',
             'image',
             'color',
             'budget',
             'start_date',
             'end_date',
-            'description',
+            'descriptions',
             'status'
-        }
+        )
 
 
 class SubTaskForm(forms.ModelForm):
     color_option = (
-        ('red', 'red'),
         ('black', 'black'),
         ('blue', 'blue'),
-        ('green', 'green'),
         ('gray', 'gray'),
+        ('red', 'red'),
+        ('green', 'green'),
+        ('orange', 'orange'),
         ('pink', 'pink'),
-        ('yellow', 'yellow'),
     )
-    title = forms.CharField(max_length=256, required=True,
+    title = forms.CharField(max_length=100,
+                            required=True,
                             widget=forms.TextInput(attrs={'class': 'form-control'}))
     image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}))
     color = forms.ChoiceField(choices=color_option, widget=forms.Select(attrs={'class': 'form-control'}))
-    budget = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    description = forms.CharField(required=True, widget=forms.Textarea(attrs={'class': 'form-control'}))
+    budget = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
     start_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
     end_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    description = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = SubTask
+        fields = (
+            'title',
+            'image',
+            'color',
+            'description',
+            'budget',
+            'start_date',
+            'end_date',
+        )
+
+
+class UpdateSubTaskForm(forms.ModelForm):
+    color_option = (
+        ('black', 'black'),
+        ('blue', 'blue'),
+        ('gray', 'gray'),
+        ('red', 'red'),
+        ('green', 'green'),
+        ('orange', 'orange'),
+        ('pink', 'pink'),
+    )
+    title = forms.CharField(max_length=100,
+                            required=True,
+                            widget=forms.TextInput(attrs={'class': 'form-control'}))
+    image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}))
+    color = forms.ChoiceField(choices=color_option, widget=forms.Select(attrs={'class': 'form-control'}))
+    descriptions = forms.CharField(required=True, widget=forms.Textarea(attrs={'class': 'form-control'}))
+    budget = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control'}))
+    start_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    end_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
+    status = forms.BooleanField(widget=forms.CheckboxInput(attrs={'type': 'checkbox'}))
 
     class Meta:
         model = Task
-        fields = {
+        fields = (
             'title',
             'image',
             'color',
             'budget',
             'start_date',
             'end_date',
-            'description',
-        }
-
-
-class SubTaskUpdateForm(forms.ModelForm):
-    color_option = (
-        ('red', 'red'),
-        ('black', 'black'),
-        ('blue', 'blue'),
-        ('green', 'green'),
-        ('gray', 'gray'),
-        ('pink', 'pink'),
-        ('yellow', 'yellow'),
-    )
-    title = forms.CharField(max_length=256, required=True,
-                            widget=forms.TextInput(attrs={'class': 'form-control'}))
-    image = forms.ImageField(widget=forms.FileInput(attrs={'class': 'form-control'}))
-    color = forms.ChoiceField(choices=color_option, widget=forms.Select(attrs={'class': 'form-control'}))
-    budget = forms.IntegerField(required=True, widget=forms.NumberInput(attrs={'class': 'form-control'}))
-    start_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    end_date = forms.DateField(widget=forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}))
-    description = forms.CharField(required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
-
-    class Meta:
-        model = Project
-        fields = {
-            'title',
-            'image',
-            'color',
-            'budget',
-            'start_date',
-            'end_date',
-            'description',
+            'descriptions',
             'status'
-        }
+        )
+
+
+class AddUserProjectForm(forms.Form):
+    phone_number = forms.CharField(required=True, max_length=12,
+                                   widget=forms.TextInput(
+                                       attrs={
+                                           'class': 'form-control',
+                                           'id': 'form3Example7',
+                                           'name': 'phone_number'
+                                       }
+                                   ))
+
+    def clean_phone_number(self):
+        phone_number = self.cleaned_data['phone_number']
+        if not CustomUser.objects.filter(phone_number=phone_number).exists():
+            raise forms.ValidationError('user from this phone number not exist')
+        return phone_number
